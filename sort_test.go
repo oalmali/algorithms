@@ -5,6 +5,7 @@ import (
 	"runtime"
 	"sync"
 	//"fmt"
+	"fmt"
 )
 
 /*to be able to see results exec command below:
@@ -16,28 +17,28 @@ btw 1 billion ns equals 1 sec
 var globArray []int
 
 func BenchmarkInsertionSorting(b *testing.B) {
-	array := Genesis("ten thousand")
+	array := Genesis("hundred thousand")
 	globArray = InsertionSort(array, 0, 100)
 }
 
 func BenchmarkSelectionSorting(b *testing.B) {
-	array := Genesis("ten thousand")
+	array := Genesis("hundred thousand")
 	SelectionSort(array, 0, 100)
 }
 
 func BenchmarkParallelSorting(b *testing.B) {
-	array := Genesis("ten thousand")
+	array := Genesis("hundred thousand")
 	//fmt.Println("parallelizing with " + strconv.Itoa(runtime.NumCPU()) + " cpus...")
-	runtime.GOMAXPROCS(runtime.NumCPU())
+	numOfCpus := runtime.NumCPU()
+	increaseRate := 100 / numOfCpus
+	runtime.GOMAXPROCS(numOfCpus)
 	var wg sync.WaitGroup
-	wg.Add(1)
-	go func(){
-		InsertionSort(array, 0, 50)
-		wg.Done()
-	}()
-	wg.Add(1)
-	go func(){
-		wg.Done()
-	}()
+	for i := 0; i < numOfCpus; i++ {
+		wg.Add(1)
+		go func(i int){
+			InsertionSort(array, i * increaseRate, (i + 1) * increaseRate)
+			wg.Done()
+		}(i)
+	}
 	wg.Wait()
 }
